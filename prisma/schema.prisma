@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  phoneNumber String   @db.VarChar(20)
+  createdAt   DateTime @default(now())
+
+  orders Order[] // One customer can have many orders
+
+  @@map("customers")
+}
+
+model Restaurant {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  description String? @db.Text
+  isOpen      Boolean @default(true)
+
+  orders Order[] // One restaurant can have many orders
+
+  @@map("restaurants")
+}
+
+model Order {
+  id                    Int      @id @default(autoincrement())
+  itemCount             Int      // Number of items ordered
+  estimatedArrivalTime  Int      // In minutes (itemCount * 10 + 10)
+  orderedAt             DateTime @default(now())
+  
+  customerId    Int
+  restaurantId  Int
+
+  // Relations
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
